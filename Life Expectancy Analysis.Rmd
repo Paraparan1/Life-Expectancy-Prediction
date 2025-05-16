@@ -1,0 +1,184 @@
+---
+title: "Life Expectancy Prediction"
+author: "Paraparan Kanesamoorthy"
+date: "2023-02-06"
+output: html_document
+---
+
+```{r}
+library(ggplot2) 
+
+library(tree)
+
+```
+
+```{r}
+
+set.seed(32138 )
+```
+
+```{r}
+#Reading in data
+data <- read.csv("Life Expectancy Data.csv")
+```
+
+
+```{r}
+# Checking summary of data. 
+summary(data)
+```
+
+```{r}
+# Checking if there any remaining na values. 
+colSums(is.na(data))
+```
+
+```{r}
+# Creating a copy of data to perform cleaning on. 
+cleaned_data = data
+```
+
+```{r}
+# Creating a list of column names.
+new_column_names <- c("country_name", "year", "economic_status", "life_expectancy", "adult_mortality",
+                      "infant_deaths", "alcohol_consumption", "percentage_expenditure",
+                      "hepatitis_b_vaccination",
+                      "measles_cases", "body_mass_index", "under_five_deaths", "polio_vaccination",
+                      "total_expenditure", "diphtheria_vaccination", "hiv_aids_prevalence", 
+                      "gross_domestic_product",
+                      "population_size", "thinness_1_19_years", "thinness_5_9_years", 
+                      "income_composition_of_resources",
+                      "education_schooling")
+
+```
+
+
+```{r}
+# Replacing old column names with new column names.
+colnames(cleaned_data) <- new_column_names
+
+```
+
+
+
+```{r}
+# Checking new column names are correct.
+colnames(cleaned_data)
+```
+
+```{r}
+
+# Removing Na values. 
+cleaned_data <- na.omit(cleaned_data) 
+
+# Converting year to a factor. 
+cleaned_data$year<-as.factor(cleaned_data$year) 
+
+# Converting country name to a factor. 
+cleaned_data$country_name<-as.factor(cleaned_data$country_name) 
+
+# Converting life_expectancy to a numeric value.
+cleaned_data$life_expectancy <-as.numeric(cleaned_data$life_expectancy)  
+
+```
+
+```{r}
+# Checking for any NA values after removing them.
+colSums(is.na(cleaned_data))
+```
+
+```{r}
+# Printing first 10 Rows of the data. 
+head(data,10)
+
+# Printing last 10 Rows of the data. 
+
+tail(data,10)
+```
+
+```{r}
+# Checking Variables types. 
+str(cleaned_data)
+```
+
+
+```{r}
+# Regression tree to determine what factors affect life expectancy. 
+lifeExpectancy.tree<-tree(cleaned_data$life_expectancy~.-country_name, data = cleaned_data)
+plot(lifeExpectancy.tree,main="Regression Tree For Life Expectancy")
+text(lifeExpectancy.tree,pretty=0)
+
+```
+
+
+```{r}
+#Histogram of life expectancy. 
+
+ggplot(cleaned_data, aes(x=life_expectancy)) + 
+  geom_histogram(colour="grey", fill="blue")  +
+  ggtitle("Life Expectancy")
+```
+```{r}
+#Highest Life expectancy 
+highest_life_expectancy <- max(cleaned_data$life_expectancy)
+
+# Calculate average (mean) life expectancy
+average_life_expectancy <- mean(cleaned_data$life_expectancy)
+
+# Calculate lowest life expectancy
+lowest_life_expectancy <- min(cleaned_data$life_expectancy)
+
+cat("Highest Life Expectancy:", highest_life_expectancy, "\n")
+cat("Average Life Expectancy:", average_life_expectancy, "\n")
+cat("Lowest Life Expectancy:", lowest_life_expectancy, "\n")
+```
+
+
+
+
+
+```{r}
+# Box plots for life expectancy and ecnomic status 
+ggplot(cleaned_data, aes(x=economic_status, y=life_expectancy)) + 
+  geom_boxplot(notch = TRUE)+coord_flip()
+
+# Box plots for life expectancy and Year 
+ggplot(cleaned_data, aes(x=year, y=life_expectancy)) + 
+  geom_boxplot()+coord_flip()
+
+#Box plots for life expectancy and alchol consumption  
+
+ggplot(cleaned_data, aes(x=alcohol_consumption, y=life_expectancy)) + 
+  geom_boxplot(notch = TRUE)+coord_flip()
+```
+
+
+```{r}
+# Life expectancy by GDP Scatter plot
+
+ggplot(cleaned_data, aes(x=life_expectancy, y=hiv_aids_prevalence,groupName=country_name)) + geom_point()+
+  ggtitle("Scatter Plot for Life Expectancy by GDP")
+
+
+```
+
+```{r}
+#Pie chart for economic status
+
+statusTable <- table(cleaned_data$economic_status)
+
+pie_labels <- paste0(c("Developed","Developing"), " = ", round(100 * statusTable/sum(statusTable), 2), "%")
+
+
+pie(statusTable,labels = pie_labels,col=hcl.colors(length(statusTable),"GnBu"))
+```
+
+```{r}
+#Exporting cleaned data to create ML and DL algorithms.
+
+write.csv(cleaned_data, file = "Life_Expectancy_Cleaned_Data.csv", row.names = FALSE)
+
+```
+
+
+
